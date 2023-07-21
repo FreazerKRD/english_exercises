@@ -38,7 +38,7 @@ async def send_question(message: types.Message):
     global current_answer
     
     if current_question_index < len(df):
-        exercise = eg.exercise_adjective_form(df.loc[current_question_index,'raw'])
+        exercise = eg.select_exercise(df.loc[current_question_index,'raw'])
         if exercise:
             current_answer = exercise['answer']
             sentence = exercise['sentence']
@@ -48,7 +48,8 @@ async def send_question(message: types.Message):
                     text=str(option),
                     callback_data=str(option))
                 )
-            await message.answer(sentence, reply_markup=builder.as_markup(resize_keyboard=True, one_time_keyboard=True))
+            message_text = f"{sentence}{os.linesep}{os.linesep}<i>{exercise['description']}</i>"
+            await message.answer(message_text, reply_markup=builder.as_markup(resize_keyboard=True, one_time_keyboard=True))
         else:
             # В случае отстутствия упражнений - вывод текущего предложения и переход к следующему
             await message.answer(df.loc[current_question_index,'raw'])
