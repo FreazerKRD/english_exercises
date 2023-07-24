@@ -28,7 +28,6 @@ async def start_command(message: types.Message):
     # Загружаем книгу для упражнений
     book_path = os.path.join(EXERCISES_PATH, current_book)
     df = pd.read_csv(book_path)
-    df = df.loc[:10,:]
     # Старт работы с упражнениями
     await send_question(message)
 
@@ -43,16 +42,25 @@ async def send_question(message: types.Message):
             current_answer = exercise['answer']
             sentence = exercise['sentence']
             builder = InlineKeyboardBuilder()
-            for option in exercise['options']:
-                builder.add(types.InlineKeyboardButton(
-                    text=str(option),
-                    callback_data=str(option))
-                )
-            message_text = f"{sentence}{os.linesep}{os.linesep}<i>{exercise['description']}</i>"
+            if exercise['type'] == 'sentence_gen':
+                for option in exercise['options']:
+                    builder.add(types.InlineKeyboardButton(
+                        text=str(option),
+                        callback_data=str(option))
+                    )
+                    builder.adjust(1)
+                message_text = f"<i>{exercise['description']}</i>"
+            else:
+                for option in exercise['options']:
+                    builder.add(types.InlineKeyboardButton(
+                        text=str(option),
+                        callback_data=str(option))
+                    )
+                message_text = f"{sentence}{os.linesep}{os.linesep}<i>{exercise['description']}</i>"
             await message.answer(message_text, reply_markup=builder.as_markup(resize_keyboard=True, one_time_keyboard=True))
         else:
             # В случае отстутствия упражнений - вывод текущего предложения и переход к следующему
-            await message.answer(df.loc[current_question_index,'raw'])
+            await message.answer(f"<b>{df.loc[current_question_index,'raw']}</b>")
             current_question_index += 1
             await send_question(message)
     else:
