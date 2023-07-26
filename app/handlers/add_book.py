@@ -14,8 +14,8 @@ def new_file(file_name: str) -> pd.DataFrame:
     file_path = os.path.join(UPLOADED_PATH, file_name)
     save_path = os.path.join(EXERCISES_PATH, file_name)
     
-        with open(file_path, mode="r") as file:
-            text = file.read()
+    with open(file_path, mode="r") as file:
+        text = file.read()
 
     # Delete uploaded file
     os.remove(file_path)
