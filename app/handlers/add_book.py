@@ -16,6 +16,12 @@ def new_file(file_name: str) -> pd.DataFrame:
     
     with open(file_path, mode="r") as file:
         text = file.read()
+
+    # Delete uploaded file
+    os.remove(file_path)
+
+    # Delete new-line symbols
+    text = text.replace('\r', ' ').replace('\n', ' ')
     
     # Split text on non-null sentences and save in DF
     sentences = splitter.split(text=text)
