@@ -4,5 +4,4 @@ python-dotenv==1.0.0
 spacy==3.6.0
 gensim==4.3.1
 sentence_splitter==1.4
-emoji==2.6.0
 pyinflect==0.5.1
