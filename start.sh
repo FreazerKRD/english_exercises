@@ -3,8 +3,8 @@
 set -e
 
 cd ./app
-mkdir uploaded_texts
-mkdir exercises_texts
+mkdir -p uploaded_texts
+mkdir -p exercises_texts
 
 python -m spacy download en_core_web_sm
 
