@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import aiogram
-from app.config import EXERCISES_PATH
+from config import EXERCISES_PATH
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder

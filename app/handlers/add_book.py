@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import asyncio
 from sentence_splitter import SentenceSplitter
-from app.config import UPLOADED_PATH, EXERCISES_PATH
+from config import UPLOADED_PATH, EXERCISES_PATH
 from aiogram import Router, F, types, Bot
 
 router = Router()
