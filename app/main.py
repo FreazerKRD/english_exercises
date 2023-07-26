@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import config
+import app.config as config
 from aiogram import Bot, Dispatcher
 from handlers import questions, add_book
 

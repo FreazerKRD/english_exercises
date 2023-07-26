@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from sentence_splitter import SentenceSplitter
-from config import UPLOADED_PATH, EXERCISES_PATH
+from app.config import UPLOADED_PATH, EXERCISES_PATH
 from aiogram import Router, F, types, Bot
 
 router = Router()

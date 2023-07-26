@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import aiogram
 import emoji
-from config import EXERCISES_PATH
+from app.config import EXERCISES_PATH
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -76,7 +76,7 @@ async def handle_answer(callback: types.CallbackQuery):
         if user_answer == current_answer:
             await callback.message.answer(emoji.emojize(":partying_face:") + " Вы выбрали верный ответ!")
         else:
-            await callback.message.answer(emoji.emojize(":sneezing_face:") + " Ваш ответ не верный! Правильный: " + current_answer)
+            await callback.message.answer(emoji.emojize(":sneezing_face:") + " Ваш ответ не верный! Правильный: <b>" + current_answer + "</b>")
         current_question_index += 1
         await send_question(callback.message)
 
