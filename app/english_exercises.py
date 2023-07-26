@@ -1,7 +1,5 @@
-import pandas as pd
 import numpy as np
 import random
-import re
 import spacy
 import pyinflect
 import en_core_web_sm
@@ -18,7 +16,7 @@ class ExerciseGenerator:
 
     # Функция для выбора упражнения по текущему предложению
     @timer
-    def select_exercise(self, sentence: str) -> dict:
+    def select_exercise(self, sentence: str) -> dict or None:
         exercises_list = [self.exercise_adjective_form(sentence),
                           self.exercise_verb_form(sentence),
                           self.exercise_sentence_gen(sentence)]
@@ -113,59 +111,6 @@ class ExerciseGenerator:
     
     # Генерация упражнения. Продолжает предложение с тремя сгенерированными вариантами.
     def exercise_sentence_gen(self, sentence: str) -> dict:
-        exercise_sentence = sentence
-        exercise_options = []
-        exercise_answer = exercise_sentence
-        exercise_description = 'Выберите правильное предложение:'
-        exercise_type = 'sentence_gen'
-
-        # Максимальная длина строки в Inline кнопке Telegram 64 байта
-        # значит, при её превышении, или если слов меньше 5 - прерываем
-        if len(exercise_sentence.split()) < 5 | len(exercise_sentence) > 63:
-            return {}
-
-        # Заменим существительные, глаголы, причастия и прилагательные
-        # на случайные близкие слова и анти-слова
-        new_sent_1, new_sent_2 = exercise_sentence, exercise_sentence
-        i=3
-        n_replaces = 0
-        for token in self.__nlp(exercise_sentence):
-            if n_replaces < 4 and token.pos_ in ['NOUN', 'VERB', 'ADV', 'ADJ'] and not token.is_stop:
-                m, n = np.random.randint(0, i, 2)
-                # Составим список похожих и противоположных слов
-                synonyms = self.__glove.most_similar(token.text.lower(), topn=i)
-                antonyms = self.__glove.most_similar(positive = [token.text.lower(), 'bad'],
-                                                       negative = ['good'],
-                                                       topn=i)
-
-                # Выберем рандомные слова для замены
-                new_words = []
-                new_words.append(synonyms[m][0])
-                new_words.append(antonyms[n][0])
-                random.shuffle(new_words)
-                
-                # Сделать слова с заглавной буквы, если токен является таким
-                new_words = [_.title() if token.text.istitle() else _ for _ in new_words]
-                # Вставить слова в новые предложения
-                new_sent_1 = new_sent_1.replace(token.text, new_words[0], 1)
-                new_sent_2 = new_sent_2.replace(token.text, new_words[1], 1)
-
-                n_replaces += 1
-
-        if n_replaces > 1:
-            exercise_options.extend([new_sent_1, new_sent_2, exercise_sentence])
-            random.shuffle(exercise_options)
-            return {'sentence' : exercise_sentence,
-                    'options' : exercise_options,
-                    'answer' : exercise_answer,
-                    'description' : exercise_description,
-                    'type' : exercise_type
-                    }
-        else:
-            return {}
-        
-        # Генерация упражнения. Продолжает предложение с тремя сгенерированными вариантами.
-    def exercise_sentence_gen2(self, sentence: str) -> dict:
         exercise_sentence = sentence
         exercise_options = []
         exercise_answer = exercise_sentence

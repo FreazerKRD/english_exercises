@@ -8,8 +8,10 @@ def get_env_value(name: str) -> str:
             f'{name} environment variable should be filled in the OS.')
     return value
 
-# Take environment variables from .env
-load_dotenv()
+# Loading .env if run without Docker
+BOT_TOKEN = os.getenv('BOT_TOKEN', None)
+if BOT_TOKEN is None:
+    load_dotenv()
 
 # Bot API token
 BOT_TOKEN = get_env_value('BOT_TOKEN')

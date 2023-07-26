@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import asyncio
 from sentence_splitter import SentenceSplitter
 from app.config import UPLOADED_PATH, EXERCISES_PATH
 from aiogram import Router, F, types, Bot
@@ -24,8 +25,7 @@ def new_file(file_name: str) -> pd.DataFrame:
     text = text.replace('-\n', '').replace('\r', '').replace('\n', ' ')
     
     # Split text on non-null sentences and save in DF
-    sentences = splitter.split(text=text)
-    sentences = [x for x in sentences if x != '']
+    sentences = [s for s in splitter.split(text) if s != '']
     df = pd.DataFrame(sentences, columns=['raw'])
 
     # Save splitted text to csv
@@ -40,5 +40,6 @@ async def download_text(message: types.Message, bot: Bot):
         await bot.download(
             message.document,
             destination= upload_path)
-        new_file(message.document.file_name)
-        
+        await asyncio.to_thread(new_file, message.document.filename)
+    else:
+        await message.answer(f"<b>Поддерживается загрузка только в txt формате, либо такая книга уже представленна в нашей базе.</b>")

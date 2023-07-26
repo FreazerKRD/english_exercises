@@ -2,7 +2,6 @@
 
 set -e
 
-cd ./app
 mkdir -p uploaded_texts
 mkdir -p exercises_texts
 

@@ -5,8 +5,6 @@ services:
     image: freazerkrd/english_exercises
     build:
       context: .
-      args:
-        - DEV=${DEV}
 
     restart: always
     volumes:

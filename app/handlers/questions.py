@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import aiogram
-import emoji
 from app.config import EXERCISES_PATH
 from aiogram import Router, types
 from aiogram.filters import Command
@@ -74,9 +73,9 @@ async def handle_answer(callback: types.CallbackQuery):
     user_answer = callback.data
     if current_question_index < len(df):
         if user_answer == current_answer:
-            await callback.message.answer(emoji.emojize(":partying_face:") + " Вы выбрали верный ответ!")
+            await callback.message.answer("\N{smiling face with sunglasses} Вы выбрали верный ответ!")
         else:
-            await callback.message.answer(emoji.emojize(":sneezing_face:") + " Ваш ответ не верный! Правильный: <b>" + current_answer + "</b>")
+            await callback.message.answer("\N{unamused face} Ваш ответ не верный! Правильный: <b>" + current_answer + "</b>")
         current_question_index += 1
         await send_question(callback.message)
 
