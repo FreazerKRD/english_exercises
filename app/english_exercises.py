@@ -1,4 +1,3 @@
-import numpy as np
 import random
 import spacy
 import pyinflect
@@ -129,7 +128,6 @@ class ExerciseGenerator:
         n_replaces = 0
         for token in self.__nlp(exercise_sentence):
             if n_replaces < 4 and token.pos_ in ['NOUN', 'VERB', 'ADV', 'ADJ'] and not token.is_stop:
-                m, n = np.random.randint(0, i, 2)
                 # Составим список похожих и противоположных слов
                 synonyms = self.__glove.most_similar(token.text.lower(), topn=i)
                 antonyms = self.__glove.most_similar(positive = [token.text.lower(), 'bad'],
@@ -138,8 +136,8 @@ class ExerciseGenerator:
 
                 # Выберем рандомные слова для замены
                 new_words = []
-                new_words.append(synonyms[m][0])
-                new_words.append(antonyms[n][0])
+                new_words.append(random.choice(synonyms)[0])
+                new_words.append(random.choice(antonyms)[0])
                 random.shuffle(new_words)
                 
                 # Сделать слова с заглавной буквы, если токен является таким

@@ -1,5 +1,5 @@
 import os
-import pandas as pd
+import json
 import aiogram
 from config import EXERCISES_PATH
 from aiogram import Router, types
@@ -14,19 +14,20 @@ eg = ExerciseGenerator()
 # Глобальные переменные
 current_question_index = 0
 current_answer = ''
-current_book = 'Little_Red_Cap_ Jacob_and_Wilhelm_Grimm.txt'
-df = pd.DataFrame()
+current_book = 'Little_Red_Cap_ Jacob_and_Wilhelm_Grimm.json'
+book_sentences = []
 
 # Обработчик команды /start
 @router.message(Command('start'))
 async def start_command(message: types.Message):
     ##### ЗДЕСЬ НУЖНО БУДЕТ БРАТЬ ПРОГРЕСС ИЗ БД! #####
     global current_question_index
-    global df
+    global book_sentences
     current_question_index = 0
     # Загружаем книгу для упражнений
     book_path = os.path.join(EXERCISES_PATH, current_book)
-    df = pd.read_csv(book_path)
+    with open(book_path, 'r') as file:
+        book_sentences = json.load(file)
     # Старт работы с упражнениями
     await send_question(message)
 
@@ -35,8 +36,8 @@ async def send_question(message: types.Message):
     global current_question_index
     global current_answer
     
-    if current_question_index < len(df):
-        exercise = eg.select_exercise(df.loc[current_question_index,'raw'])
+    if current_question_index < len(book_sentences):
+        exercise = eg.select_exercise(book_sentences[current_question_index])
         if exercise:
             current_answer = exercise['answer']
             sentence = exercise['sentence']
@@ -59,7 +60,7 @@ async def send_question(message: types.Message):
             await message.answer(message_text, reply_markup=builder.as_markup(resize_keyboard=True, one_time_keyboard=True))
         else:
             # В случае отстутствия упражнений - вывод текущего предложения и переход к следующему
-            await message.answer(f"<b>{df.loc[current_question_index,'raw']}</b>")
+            await message.answer(f"<b>{book_sentences[current_question_index]}</b>")
             current_question_index += 1
             await send_question(message)
     else:
@@ -71,7 +72,7 @@ async def handle_answer(callback: types.CallbackQuery):
     global current_question_index
     global current_answer
     user_answer = callback.data
-    if current_question_index < len(df):
+    if current_question_index < len(book_sentences):
         if user_answer == current_answer:
             await callback.message.answer("\N{smiling face with sunglasses} Вы выбрали верный ответ!")
         else:

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import config
 from aiogram import Bot, Dispatcher
-from handlers import questions, add_book
+from handlers import questions, files
 
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +13,7 @@ async def main():
     dp = Dispatcher()
 
     # Регистрация роутеров
-    dp.include_routers(questions.router, add_book.router)
+    dp.include_routers(questions.router, files.router)
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
