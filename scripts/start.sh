@@ -3,7 +3,8 @@
 set -e
 
 # wait for db
-python wait_for_db.py
+python ./db/wait_for_db.py
+python ./db/apply_migrations.py
 
 mkdir -p uploaded_texts
 mkdir -p exercises_texts

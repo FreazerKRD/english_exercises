@@ -25,4 +25,4 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 EXERCISES_PATH = os.path.join(ROOT_DIR, 'exercises_texts/')
 UPLOADED_PATH = os.path.join(ROOT_DIR,'uploaded_texts/')
 # Path to database
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}" 
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}" 

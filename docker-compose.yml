@@ -2,15 +2,18 @@ version: "3.9"
 
 services:
   app:
-    image: freazerkrd/english_exercises
+    #image: freazerkrd/english_exercises
     build:
       context: .
-
     restart: always
     volumes:
       - ./app:/app
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
 
   db:
     image: postgres:15-alpine
