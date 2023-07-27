@@ -11,3 +11,24 @@ services:
       - ./app:/app
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+  
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+
+volumes:
+  db-data:
