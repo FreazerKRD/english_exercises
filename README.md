@@ -1,5 +1,6 @@
 # EngEx_bot
- Telegram bot with English language exercises
+ Telegram bot with English language exercises.
+ You can test the bot in telegram: https://t.me/EngEx_bot
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 

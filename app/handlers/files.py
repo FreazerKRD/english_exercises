@@ -43,9 +43,11 @@ def new_file(file_name: str) -> bool:
         return False
 
 @router.message(F.document)
-async def download_text(message: types.Message, bot: Bot):
+async def download_text(message: types.Message, bot: Bot, **kwargs):
     upload_path = os.path.join(UPLOADED_PATH, message.document.file_name)
     saved_path = os.path.join(EXERCISES_PATH, message.document.file_name.replace('txt', 'json'))
+    conn = kwargs['conn']
+    pool = kwargs['pool']
     # Проверка, является ли файл txt, и не был ли загружен ранее
     if message.document.file_name.lower().endswith('.txt') \
             and not os.path.exists(saved_path) \
@@ -56,6 +58,9 @@ async def download_text(message: types.Message, bot: Bot):
         result = False
         result = new_file(message.document.file_name)
         if result:
+            await conn.execute('INSERT INTO books (file_name) VALUES ($1) ON CONFLICT (file_name) DO NOTHING;', 
+                               message.document.file_name.replace('txt', 'json'))
+            
             await message.answer("<i>Книга успешно загружена и сохранена в базе.</i>")
         else:
             await message.answer("<i>Ошибка чтения файла, либо такая книга уже представленна в нашей базе.</i>")

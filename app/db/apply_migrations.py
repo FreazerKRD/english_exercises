@@ -3,7 +3,6 @@ import asyncio
 import glob
 from db.db_connection import create_connection
 import logging
-import config
 
 
 logger = logging.getLogger('apply_migrations')

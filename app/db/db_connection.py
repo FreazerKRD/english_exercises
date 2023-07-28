@@ -35,6 +35,3 @@ class DataBase:
 
 def create_connection(host=DB_HOST, name=DB_NAME, user=DB_USER, password=DB_PASS):
     return DataBase(host, name, user, password)
-
-
-db = create_connection()
