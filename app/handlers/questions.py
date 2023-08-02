@@ -17,8 +17,8 @@ current_answer = ''
 current_book = 'Little_Red_Cap_ Jacob_and_Wilhelm_Grimm.json'
 book_sentences = []
 
-# Обработчик команды /start
-@router.message(Command('start'))
+# Обработчик команды /study
+@router.message(Command('study'))
 async def start_command(message: types.Message):
     ##### ЗДЕСЬ НУЖНО БУДЕТ БРАТЬ ПРОГРЕСС ИЗ БД! #####
     global current_question_index

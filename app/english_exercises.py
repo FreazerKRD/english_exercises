@@ -13,6 +13,8 @@ class ExerciseGenerator:
         self.__glove = api.load("glove-wiki-gigaword-50")
         print('***Exercise generator started.***')
 
+    ####### Сделать загрузку списка упражнений из бд
+    
     # Функция для выбора упражнения по текущему предложению
     @timer
     def select_exercise(self, sentence: str) -> dict or None:

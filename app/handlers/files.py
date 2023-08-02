@@ -4,7 +4,9 @@ import asyncio
 from sentence_splitter import SentenceSplitter
 from config import UPLOADED_PATH, EXERCISES_PATH
 from aiogram import Router, F, types, Bot
+from db.db_requests import add_file, set_book, get_user_information
 
+# Init router
 router = Router()
 
 def new_file(file_name: str) -> bool:
@@ -44,11 +46,18 @@ def new_file(file_name: str) -> bool:
 
 @router.message(F.document)
 async def download_text(message: types.Message, bot: Bot, **kwargs):
+    # Paths to temporary and result files
     upload_path = os.path.join(UPLOADED_PATH, message.document.file_name)
     saved_path = os.path.join(EXERCISES_PATH, message.document.file_name.replace('txt', 'json'))
+    
+    # Take user_id
+    user_id = message.from_user.id if message.from_user.id else None
+    
+    # Take Connection and users_cache
     conn = kwargs['conn']
-    pool = kwargs['pool']
-    # Проверка, является ли файл txt, и не был ли загружен ранее
+    users_cache = kwargs['users_cache']
+    
+    # Check file is txt and wasn't uploaded earlier
     if message.document.file_name.lower().endswith('.txt') \
             and not os.path.exists(saved_path) \
             and message.document.file_size < 307200:
@@ -58,10 +67,13 @@ async def download_text(message: types.Message, bot: Bot, **kwargs):
         result = False
         result = new_file(message.document.file_name)
         if result:
-            await conn.execute('INSERT INTO books (file_name) VALUES ($1) ON CONFLICT (file_name) DO NOTHING;', 
-                               message.document.file_name.replace('txt', 'json'))
-            
-            await message.answer("<i>Книга успешно загружена и сохранена в базе.</i>")
+            book_id = await add_file(conn, message.document.file_name.replace('txt', 'json'))
+            if book_id:
+                await set_book(conn, user_id, book_id)
+                print('Cache before:', users_cache[user_id])
+                users_cache[user_id] = await get_user_information(conn, user_id)
+                print('Cache after:', users_cache[user_id])
+                await message.answer("<i>Книга успешно загружена и выбрана для упражнений.</i>")
         else:
             await message.answer("<i>Ошибка чтения файла, либо такая книга уже представленна в нашей базе.</i>")
     else:

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import config
 from aiogram import Bot, Dispatcher
-from handlers import questions, files
+from handlers import questions, files, user_commands
 from db.db_middleware import DBMiddleware
 from db.db_connection import create_connection
 
@@ -20,7 +20,9 @@ async def main():
     await db.on_startup()
 
     # Регистрация роутеров
-    dp.include_routers(questions.router, files.router)
+    dp.include_routers(questions.router, 
+                       files.router,
+                       user_commands.router)
 
     # Подключение миддлваря с пулом PostgreSQL
     dp.update.outer_middleware(DBMiddleware(db))
