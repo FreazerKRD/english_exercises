@@ -7,6 +7,7 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from redis.asyncio import Redis
 from english_exercises import ExerciseGenerator
+from db.db_requests import dump_progress
 
 # Инициализация роутера и генератора упражнений
 router = Router()
@@ -14,7 +15,7 @@ eg = ExerciseGenerator()
 
 # Обработчик команды /study
 @router.message(Command('study'))
-async def study_command(message: types.Message, r, **kwargs):
+async def study_command(message: types.Message, r):
 
     # Take user settings and sentences from data of Dispatcher
     users_cache = await r.hget(message.from_user.id, 'cache')

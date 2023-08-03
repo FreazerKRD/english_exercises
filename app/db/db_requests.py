@@ -54,6 +54,17 @@ async def set_book(conn, user_id: int, book_id: int) -> None:
             SET "current_book" = $1 \
             WHERE "telegram_id" = $2;', 
             book_id, user_id)
+        
+# Dump training progress to SQL
+async def dump_progress(conn, user_id: int, book_id: int, progress: int) -> None:
+    if await conn.fetchrow('SELECT * FROM user_books WHERE user_id = $1 AND book_id = $2', user_id, book_id):
+        await conn.execute('UPDATE user_books SET progress = $3 WHERE book_id = $1 AND user_id = $2;',
+                            book_id, user_id, progress)
+    else:
+        await conn.execute('INSERT INTO user_books (user_id, book_id, progress) \
+                            VALUES ($1, $2, $3);', 
+                            user_id, book_id, progress)
+        
 
 # Set user types of exercises
 async def set_exercises(conn, user_id: int, exercise_adjective_form: bool, 
