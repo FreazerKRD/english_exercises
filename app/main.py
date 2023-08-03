@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from handlers import questions, files, user_commands
 from db.db_middleware import DBMiddleware
 from db.db_connection import create_connection
+import redis.asyncio as redis
 
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
@@ -19,13 +20,16 @@ async def main():
     db = create_connection()
     await db.on_startup()
 
+    # add redis
+    r = redis.Redis(host='redis', db=0)
+
     # Регистрация роутеров
     dp.include_routers(questions.router, 
                        files.router,
                        user_commands.router)
 
     # Подключение миддлваря с пулом PostgreSQL
-    dp.update.outer_middleware(DBMiddleware(db))
+    dp.update.outer_middleware(DBMiddleware(db, r))
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)

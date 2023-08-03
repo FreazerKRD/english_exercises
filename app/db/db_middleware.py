@@ -1,14 +1,17 @@
 from aiogram import BaseMiddleware
 from aiogram.types import Update
+from redis.asyncio import Redis
 from typing import Callable, Any, Awaitable
 from db.db_requests import user_registration, get_user_information
+import json
 
 class DBMiddleware(BaseMiddleware):
     """
         The middleware makes get db connection from the pool and forwards it to the handler.
     """
-    def __init__(self, db) -> None:
+    def __init__(self, db, r: Redis) -> None:
         self.db = db
+        self.r = r
         self.cache = {}
 
     async def __call__(
@@ -19,23 +22,25 @@ class DBMiddleware(BaseMiddleware):
     ) -> Any:
         # Initialization of pool connections for all handlers 
         # and save to the kwargs of Dispatcher(data)
+        data['r'] = self.r
+
         async with self.db.pool.acquire() as conn:
             async with conn.transaction():
                 data['conn'] = conn
                 data['pool'] = self.db.pool
-                data['users_cache'] = self.cache
 
-            # Extract user_id from any type of events
-            event_object = getattr(event, event.event_type)
-            user_id = event_object.from_user.id
+                # Extract user_id from any type of events
+                event_object = getattr(event, event.event_type)
+                user_id = event_object.from_user.id
 
-            # Register user and save it's information into cache
-            if user_id != None:
-                user_cache = {}
+                # Register user and save it's information into cache
+                if user_id != None:
 
-                user_reg_res = await user_registration(conn=conn, user_id=user_id)
-                if user_reg_res:
-                    user_cache = await get_user_information(conn=conn, user_id=user_reg_res)
-                    self.cache[user_reg_res] = user_cache
+                    uc = await self.r.hget(user_id, 'cache')
+                    if not uc:
+                        await user_registration(conn=conn, user_id=user_id)
+                        user_cache = await get_user_information(conn, user_id)
+                        cache_str = json.dumps(user_cache, ensure_ascii=False)
+                        await self.r.hset(user_id, 'cache', cache_str)
 
-            return await handler(event, data)
+                return await handler(event, data)

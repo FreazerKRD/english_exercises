@@ -1,21 +1,16 @@
 import asyncio
 
 # Add user to DB
-async def user_registration(conn, user_id: int) -> int | None:
+async def user_registration(conn, user_id: int) -> None:
     row = await conn.fetchrow('SELECT * FROM users WHERE telegram_id = $1', user_id)
     if row:
         print(f'User id {user_id} already in DB.')
-        return row.get('telegram_id')
     else:
-        if await conn.execute('INSERT INTO users (telegram_id) \
+        await conn.execute('INSERT INTO users (telegram_id) \
                                 VALUES ($1) \
                                 ON CONFLICT (telegram_id) DO NOTHING;', 
-                                user_id):
-            print(f'User added, id: {user_id}')
-            return user_id
-        else:
-            print('Error adding new user!')
-            return None
+                                user_id)
+        print(f'User added, id: {user_id}')
         
 # Get user information and return to save in cache
 async def get_user_information(conn, user_id: int) -> dict:
@@ -26,13 +21,13 @@ async def get_user_information(conn, user_id: int) -> dict:
                                        row['telegram_id'], row['current_book'])
         if progress:
             row['current_progress'] = dict(progress)['progress']
-            return row
         else:
             await conn.execute('INSERT INTO user_books (user_id, book_id) \
                                 VALUES ($1, $2);', 
                                 row['telegram_id'], row['current_book'])
             row['current_progress'] = 0
-            return row
+        row['file_name'] = dict(await conn.fetchrow('SELECT * FROM books WHERE id = $1;', row['current_book']))['file_name']
+        return row
 
 # Add information about new file to DB        
 async def add_file(conn, file_name: str) -> int | None:

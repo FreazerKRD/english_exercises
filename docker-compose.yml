@@ -14,6 +14,9 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
+    depends_on:
+      - db
+      - redis
 
   db:
     image: postgres:15-alpine
@@ -33,5 +36,13 @@ services:
     depends_on:
       - db
 
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - redis-data:/data
+
 volumes:
   db-data:
+  redis-data:

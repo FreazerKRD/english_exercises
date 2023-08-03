@@ -70,9 +70,7 @@ async def download_text(message: types.Message, bot: Bot, **kwargs):
             book_id = await add_file(conn, message.document.file_name.replace('txt', 'json'))
             if book_id:
                 await set_book(conn, user_id, book_id)
-                print('Cache before:', users_cache[user_id])
                 users_cache[user_id] = await get_user_information(conn, user_id)
-                print('Cache after:', users_cache[user_id])
                 await message.answer("<i>Книга успешно загружена и выбрана для упражнений.</i>")
         else:
             await message.answer("<i>Ошибка чтения файла, либо такая книга уже представленна в нашей базе.</i>")
