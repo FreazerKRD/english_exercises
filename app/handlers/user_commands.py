@@ -8,8 +8,10 @@ from aiogram.fsm.state import State, StatesGroup
 from db.db_requests import (dump_progress, 
                             get_all_books, 
                             set_book,
-                            get_user_information)
+                            get_user_information,
+                            set_exercises)
 from keyboards.book_selection import books_kb
+from keyboards.user_settings import user_settings_kb
 
 # Инициализация роутера и класса запросов к БД
 router = Router()
@@ -102,8 +104,8 @@ async def books_process(callback: types.CallbackQuery,
                                      reply_markup=books_kb(books_list, start_index=_start_idx, books_per_page=books_per_page))
 
 # Обработчик команды /stop_train
-@router.message(Command('stop_train'))
-async def stop_train_command(message: types.Message, r, **kwargs):
+@router.message(Command('save_progress'))
+async def save_progress_command(message: types.Message, r, **kwargs):
     users_cache = await r.hget(message.from_user.id, 'cache')
     users_cache = json.loads(users_cache.decode('utf-8'))
 
@@ -113,5 +115,73 @@ async def stop_train_command(message: types.Message, r, **kwargs):
 
     conn = kwargs['conn']
     await dump_progress(conn, user_id, book_id, progress)
+
+class user_options(StatesGroup):
+    exercise_adjective_form = State()
+    exercise_verb_form = State()
+    exercise_sentence_gen = State()
+
+@router.message(Command('settings'))
+async def settings_command(message: types.Message, state: FSMContext, r):
+    await message.answer(
+        text="Выбор степени прилагательного",
+        reply_markup=user_settings_kb()
+    )
+    await state.set_state(user_options.exercise_adjective_form)
+
+@router.callback_query(user_options.exercise_adjective_form, Text(startswith="us_"))
+async def exercise_adjective_form_chosen(callback: types.CallbackQuery, 
+                                        state:FSMContext,
+                                        r,
+                                        **kwargs):
+    if callback.data.replace("us_", "") == 'on':
+        await state.update_data(exercise_adjective_form = True)
+    elif callback.data.replace("us_", "") == 'off':
+        await state.update_data(exercise_adjective_form = False)
+    await callback.message.edit_reply_markup()
+    await callback.message.answer(
+        text="Выбор формы глагола",
+        reply_markup=user_settings_kb()
+    )
+    await state.set_state(user_options.exercise_verb_form)
+
+@router.callback_query(user_options.exercise_verb_form, Text(startswith="us_"))
+async def exercise_verb_form_chosen(callback: types.CallbackQuery, 
+                                        state:FSMContext,
+                                        r,
+                                        **kwargs):
+    if callback.data.replace("us_", "") == 'on':
+        await state.update_data(exercise_verb_form = True)
+    elif callback.data.replace("us_", "") == 'off':
+        await state.update_data(exercise_verb_form = False)
+    await callback.message.edit_reply_markup()
+    await callback.message.answer(
+        text="Выбор правильного предложения",
+        reply_markup=user_settings_kb()
+    )
+    await state.set_state(user_options.exercise_sentence_gen)
+
+@router.callback_query(user_options.exercise_sentence_gen, Text(startswith="us_"))
+async def exercise_verb_form_chosen(callback: types.CallbackQuery, 
+                                        state:FSMContext,
+                                        r,
+                                        **kwargs):
+    if callback.data.replace("us_", "") == 'on':
+        await state.update_data(exercise_sentence_gen = True)
+    elif callback.data.replace("us_", "") == 'off':
+        await state.update_data(exercise_sentence_gen = False)
+    await callback.message.edit_reply_markup()
+    user_data = await state.get_data()
     
-        
+    # Update user settings in SQL
+    await set_exercises(kwargs['conn'], 
+                        callback.from_user.id, 
+                        exercise_adjective_form=user_data['exercise_adjective_form'],
+                        exercise_verb_form=user_data['exercise_verb_form'],
+                        exercise_sentence_gen=user_data['exercise_sentence_gen'])
+    
+    # Update user's cache in Redis
+    users_cache = await get_user_information(kwargs['conn'], callback.from_user.id)
+    cache_str = json.dumps(users_cache, ensure_ascii=False)
+    await r.hset(callback.from_user.id, 'cache', cache_str)
+    await state.clear()

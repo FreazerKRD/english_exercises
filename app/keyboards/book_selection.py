@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Using list of dicts with books info
-def books_kb(posts: list, start_index: int, books_per_page: int) -> InlineKeyboardMarkup | int:
+def books_kb(posts: list, start_index: int, books_per_page: int) -> InlineKeyboardMarkup:
 
     # Set count of books per page and check if it's out of total books count
     end_index = start_index + books_per_page

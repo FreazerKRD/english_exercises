@@ -162,3 +162,69 @@ class ExerciseGenerator:
                     }
         else:
             return {}
+        
+    # Генерация упражнения. Выделение фразы, требуется указать, какая это часть предложения
+    # Упражнение еще не готово
+    def exercise_noun_chunk(self, sentence: str) -> dict:
+        exercise_sentence = sentence
+        exercise_chunk = ''
+        exercise_options = []
+        exercise_answer = ''
+        exercise_description = 'Какой частью предложения является выделенная фраза:'
+        exercise_type = 'sentence_gen'
+
+        # Выделение произвольных частей предложения
+        for chunk in self.__nlp(exercise_sentence).noun_chunks:
+            candidates.append(chunk)
+
+        # Сохраняем порядок и выбираем случайные элементы. В тексте должно быть больше одного chunk
+        if len(candidates) > 1:
+            # Выберем случайный вариант из кандидатов
+            winner = random.choise(candidates)
+            
+            exercise_chunk = exercise_sentence.replace(winner.text, '**'+winner.text+'**')
+            exercise_answer = spacy.explain(chunk.root.dep_)
+            candidates = winner.text
+            task_options.append('')
+            task_result.append('')
+
+            # Возможные варианты ответа формируются из всех описаний части речи из task_answer
+            # Если меньше 3-х вариантов ответа, то дозаполняем оставшиеся случайными значениями
+            unique_answers = list(set(task_answer))
+            dep_list = ['clausal modifier of noun (adjectival clause)', 'adjectival complement', 'adverbial clause modifier', 
+                    'adverbial modifier', 'agent', 'adjectival modifier', 'appositional modifier', 'attribute', 'auxiliary', 
+                    'auxiliary (passive)', 'case marking', 'coordinating conjunction', 'clausal complement', 'compound', 
+                    'conjunct', 'copula', 'clausal subject', 'clausal subject (passive)', 'dative', 'unclassified dependent', 
+                    'determiner', 'direct object', 'expletive', 'interjection', 'marker', 'meta modifier', 'negation modifier', 
+                    'noun compound modifier', 'noun phrase as adverbial modifier', 'nominal subject', 'nominal subject (passive)', 
+                    'object predicate', 'object', 'oblique nominal', 'complement of preposition', 'object of preposition', 
+                    'possession modifier', 'pre-correlative conjunction', 'prepositional modifier', 'particle', 'punctuation', 
+                    'modifier of quantifier', 'relative clause modifier', 'root', 'open clausal complement']
+            for i in unique_answers:
+                try:
+                    dep_list.remove(i)
+                except:
+                    pass
+            if len(unique_answers) == 2:
+                unique_answers.append(random.choice(dep_list))
+            elif len(unique_answers) == 1:
+                unique_answers.extend(random.sample(dep_list, k=2))
+            random.shuffle(unique_answers)
+            task_options = [unique_answers for _ in task_options]
+        else:
+            task_object = np.nan
+            task_options = np.nan
+            task_answer = np.nan
+            task_result = np.nan
+            task_description = np.nan
+
+        return {'raw' : text,
+                'task_type' : task_type,
+                'task_text' : task_text,
+                'task_object' : task_object,
+                'task_options' : task_options,
+                'task_answer' : task_answer,
+                'task_result' : task_result,
+                'task_description' : task_description,
+                'task_total': 0
+                }
