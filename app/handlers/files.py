@@ -45,7 +45,7 @@ def new_file(file_name: str) -> bool:
         return False
 
 @router.message(F.document)
-async def download_text(message: types.Message, bot: Bot, **kwargs):
+async def download_text(message: types.Message, bot: Bot, r, **kwargs):
     # Paths to temporary and result files
     upload_path = os.path.join(UPLOADED_PATH, message.document.file_name)
     saved_path = os.path.join(EXERCISES_PATH, message.document.file_name.replace('txt', 'json'))
@@ -55,7 +55,6 @@ async def download_text(message: types.Message, bot: Bot, **kwargs):
     
     # Take Connection and users_cache
     conn = kwargs['conn']
-    users_cache = kwargs['users_cache']
     
     # Check file is txt and wasn't uploaded earlier
     if message.document.file_name.lower().endswith('.txt') \
@@ -70,7 +69,10 @@ async def download_text(message: types.Message, bot: Bot, **kwargs):
             book_id = await add_file(conn, message.document.file_name.replace('txt', 'json'))
             if book_id:
                 await set_book(conn, user_id, book_id)
-                users_cache[user_id] = await get_user_information(conn, user_id)
+                users_cache = await get_user_information(conn, user_id)
+                cache_str = json.dumps(users_cache, ensure_ascii=False)
+                await r.hset(message.from_user.id, 'cache', cache_str)
+                
                 await message.answer("<i>Книга успешно загружена и выбрана для упражнений.</i>")
         else:
             await message.answer("<i>Ошибка чтения файла, либо такая книга уже представленна в нашей базе.</i>")
