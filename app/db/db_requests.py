@@ -65,6 +65,12 @@ async def dump_progress(conn, user_id: int, book_id: int, progress: int) -> None
                             VALUES ($1, $2, $3);', 
                             user_id, book_id, progress)
         
+# Get all books from DB
+async def get_all_books(conn) -> list:
+    books_list = await conn.fetch('SELECT * FROM books')
+    books_list = [dict(book) for book in books_list]
+    return books_list
+        
 
 # Set user types of exercises
 async def set_exercises(conn, user_id: int, exercise_adjective_form: bool, 

@@ -3,11 +3,10 @@ import json
 import aiogram
 from config import EXERCISES_PATH
 from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram.filters import Command, Text
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from redis.asyncio import Redis
 from english_exercises import ExerciseGenerator
-from db.db_requests import dump_progress
 
 # Инициализация роутера и генератора упражнений
 router = Router()
@@ -46,17 +45,21 @@ async def send_question(message: types.Message, user_id: int, r: Redis):
             builder = InlineKeyboardBuilder()
             if exercise['type'] == 'sentence_gen':
                 for option in exercise['options']:
+                    option_data = 'ex_' + str(option)
                     builder.add(types.InlineKeyboardButton(
-                        text=str(option),
-                        callback_data=str(option))
+                        text = str(option),
+                        # Add prefix for filtering is callback query
+                        callback_data = option_data)
                     )
                     builder.adjust(1)
                 message_text = f"<i>{exercise['description']}</i>"
             else:
                 for option in exercise['options']:
+                    option_data = 'ex_' + str(option)
                     builder.add(types.InlineKeyboardButton(
-                        text=str(option),
-                        callback_data=str(option))
+                        text = str(option),
+                        # Add prefix for filtering is callback query
+                        callback_data = option_data)
                     )
                 message_text = f"{sentence}{os.linesep}{os.linesep}<i>{exercise['description']}</i>"
             await message.answer(message_text, reply_markup=builder.as_markup(resize_keyboard=True, one_time_keyboard=True))
@@ -64,6 +67,8 @@ async def send_question(message: types.Message, user_id: int, r: Redis):
             # В случае отстутствия упражнений - вывод текущего предложения и переход к следующему
             await message.answer(f"<b>{users_cache['book_sentences'][users_cache['current_progress']]}</b>")
             users_cache['current_progress'] += 1
+            cache_str = json.dumps(users_cache, ensure_ascii=False)
+            await r.hset(user_id, 'cache', cache_str)  
             await send_question(message, user_id, r)
 
         cache_str = json.dumps(users_cache, ensure_ascii=False)
@@ -73,23 +78,25 @@ async def send_question(message: types.Message, user_id: int, r: Redis):
         await message.answer("Вопросы закончились!")
 
 # Обработчик ответов на вопросы
-@router.callback_query()
+@router.callback_query(Text(startswith="ex_"))
 async def handle_answer(callback: types.CallbackQuery, r: Redis):
     users_cache = await r.hget(callback.from_user.id, 'cache')
     users_cache = json.loads(users_cache.decode('utf-8'))
 
-    user_answer = callback.data
+    user_answer = callback.data.split("_")[1]
 
     if users_cache['current_progress'] < len(users_cache['book_sentences']):
         if user_answer == users_cache['current_answer']:
-            await callback.message.answer("\N{smiling face with sunglasses} Вы выбрали верный ответ!")
+            await callback.message.answer("\N{smiling face with sunglasses} Вы выбрали верный ответ: <b>" + 
+                                          os.linesep + users_cache['current_answer'] + "</b>")
         else:
-            await callback.message.answer("\N{unamused face} Ваш ответ неверный! Правильный: <b>" + users_cache['current_answer'] + "</b>")
+            await callback.message.answer("\N{unamused face} Ваш ответ неверный! Правильный: <b>" + os.linesep 
+                                          + users_cache['current_answer'] + "</b>")
         users_cache['current_progress'] += 1
         
         cache_str = json.dumps(users_cache, ensure_ascii=False)
         await r.hset(callback.from_user.id, 'cache', cache_str)
-        
+        await callback.message.edit_reply_markup()
         await send_question(callback.message, callback.from_user.id, r)
 
     await callback.answer()

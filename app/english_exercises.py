@@ -120,7 +120,8 @@ class ExerciseGenerator:
 
         # Максимальная длина строки в Inline кнопке Telegram 64 байта
         # значит, при её превышении, или если слов меньше 5 - прерываем
-        if len(exercise_sentence.split()) < 5 | len(exercise_sentence) > 63:
+        # 60 - так как используются префиксы в callback query
+        if len(exercise_sentence.split()) < 5 | len(exercise_sentence) > 60:
             return {}
 
         # Заменим существительные, глаголы, причастия и прилагательные

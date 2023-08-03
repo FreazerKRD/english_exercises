@@ -1,29 +1,46 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-def books_kb(posts, n): # Передаем массив всех rybu и желаемый индекс последнего выводимого товара
-    books_kb = InlineKeyboardMarkup()
-    for i in range(n-10, len(posts)): # Так как я решил выводить только 10 позиций за раз, то от конечного индекса отнимаем 10
-        if i >= n or i > len(posts): #Проверка на то когда нужно прекращать добавлять кнопки(когда индекс больше передаваемого, чтобы не выводилось больше позиций чем нужно. И проверка на то, если у последней страницы не хватает "добить" 10 позиций, оно не крашилось изза выхода за пределы массива)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+# Using list of dicts with books info
+def books_kb(posts: list, start_index: int, books_per_page: int) -> InlineKeyboardMarkup | int:
+
+    # Set count of books per page and check if it's out of total books count
+    end_index = start_index + books_per_page - 1
+    
+    builder = InlineKeyboardBuilder()
+    
+    # Add buttons for books
+    for i in range(start_index, end_index): 
+        if i == len(posts):
             break
         else:
-            current = InlineKeyboardButton(str(posts[i][1]), callback_data=posts[i][0])#Создаю кнопку в тексте которой название книги, а в callback_data закидываю id книги из бд для дальнейшего взаимодействия
-            books_kb.add(current) # Добавляю в клавиатуру
-    if n <= 10 and n >= len(posts):#Здесь идут проверки для добавления кнопок назад/вперед чтобы в конце списка не появлялась кнопка вперед
-        cancel = InlineKeyboardButton("Отмена", callback_data="cancel_offers")
-        books_kb.row(cancel)
-    elif n == 10:
-        forward = InlineKeyboardButton("Вперед", callback_data = "forward_offers" )
-        cancel = InlineKeyboardButton("Отмена", callback_data="cancel_offers")
-        books_kb.row(forward)
-        books_kb.row(cancel)
-    elif n>=len(posts):
-        back= InlineKeyboardButton("Назад", callback_data="back_offers" )
-        cancel = InlineKeyboardButton("Отмена", callback_data="cancel_offers")
-        books_kb.row(back)
-        books_kb.row(cancel)
+            # Create button for book and add to keyboard
+            builder.add(InlineKeyboardButton(
+                text = str(posts[i]['file_name']).replace(".json", ""),
+                # Add prefix for filtering is callback query
+                callback_data='bs_' + str(posts[i]['id']))
+            )
+            builder.adjust(1)
+    
+    # Show only actual buttons
+    if start_index <= books_per_page and books_per_page >= len(posts):
+        builder.add(InlineKeyboardButton(text="Отмена", callback_data="bs_cancel"))
+        builder.adjust(1)
+    
+    elif start_index <= books_per_page and end_index < len(posts):
+        builder.add(InlineKeyboardButton(text="Вперед", callback_data = "bs_forward"))
+        builder.add(InlineKeyboardButton(text="Отмена", callback_data="bs_cancel"))
+        builder.adjust(2)
+    
+    elif start_index >= books_per_page and end_index >= len(posts):
+        builder.add(InlineKeyboardButton(text="Назад", callback_data="bs_back"))
+        builder.add(InlineKeyboardButton(text="Отмена", callback_data="bs_cancel"))
+        builder.adjust(2)
+    
     else:
-        forward = InlineKeyboardButton("Вперед", callback_data = "forward_offers" )
-        back= InlineKeyboardButton("Назад", callback_data="back_offers" )
-        cancel = InlineKeyboardButton("Отмена", callback_data="cancel_offers")
-        books_kb.row(back, forward)
-        books_kb.row(cancel)
-    return books_kb 
+        builder.add(InlineKeyboardButton(text="Вперед", callback_data = "bs_forward"))
+        builder.add(InlineKeyboardButton(text="Отмена", callback_data="bs_cancel"))
+        builder.add(InlineKeyboardButton(text="Назад", callback_data="bs_back"))
+        builder.adjust(3)
+    
+    return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
