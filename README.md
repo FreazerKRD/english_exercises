@@ -2,7 +2,8 @@
  Telegram bot with English language exercises.
  You can use the bot in telegram: https://t.me/EngEx_bot
 
- EngEx not is now running on VPS server.
+ EngEx bot is now running on VPS server.
+ 
  Bot built via Aiogram v.3, asyncio and asyncpg(asynchronous driver of PostgreSQL), Redis for caching user's data.
  Bot also uses Spacy, Gensim for generating exercises online.
 
