@@ -7,7 +7,7 @@
  Bot built via Aiogram v.3, asyncio and asyncpg(asynchronous driver of PostgreSQL), Redis for caching user's data.
  Bot also uses Spacy, Gensim for generating exercises online.
 
- There are dockerfile and docker-compose, so you could run it on your machine easily. Also there is ens example file that would help you to set up your own settings on deployment.
+ There are dockerfile and docker-compose, so you could run it on your machine easily. Also there is .env example file that would help you to set up your own settings on deployment.
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
