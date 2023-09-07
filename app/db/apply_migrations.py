@@ -14,7 +14,7 @@ async def apply_migrations(conn: asyncpg.Connection):
     if current_version is None:
         current_version = 0
         await conn.execute('INSERT INTO schema_version (version) VALUES ($1);', current_version)
-    migration_files = sorted(glob.glob('db/migrations/*.sql'))
+    migration_files = sorted(glob.glob('db/migrations/*.sql'), key=lambda x: int(x.split('/')[-1].split('_')[0]))
     migrations_applied = 0
     for filename in migration_files:
         # extract version from filename
